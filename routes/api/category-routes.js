@@ -10,7 +10,6 @@ router.get("/", async (req, res) => {
     include: {
       model: Product,
       require: true,
-      attributes: ["product_name"],
     },
     order: [["category_name", "ASC"]],
   });
@@ -37,7 +36,12 @@ router.post("/", async (req, res) => {
   // create a new category
   console.log(req.body);
   const newCategory = await Category.create(req.body);
-  res.status(201).send("added new category");
+  const categoryId = await Category.findOne({
+    where: {
+      category_name: req.body.category_name,
+    },
+  });
+  res.status(201).send("added new category #" + categoryId.id);
 });
 
 router.put("/:id", async (req, res) => {
@@ -52,11 +56,13 @@ router.put("/:id", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   // delete a category by its `id` value
-  const category = await Category.destroy({
+  const category = Category.findByPk(req.params.id);
+  const deleted = await Category.destroy({
     where: {
       id: req.params.id,
     },
   });
+  res.status(200).send(`Deleted ${category.category_name}`);
 });
 
 module.exports = router;
